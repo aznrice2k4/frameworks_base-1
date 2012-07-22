@@ -9,5 +9,7 @@ LOCAL_PATH:= frameworks/base/data/sounds
 
 PRODUCT_COPY_FILES += \
 	$(LOCAL_PATH)/fnvsounds/Nexus.mp3:system/media/audio/notifications/Nexus.mp3 \
-	$(LOCAL_PATH)/fnvsounds/ThemosICS.mp3:system/media/audio/ringtones/ThemosICS.mp3
+	$(LOCAL_PATH)/fnvsounds/ThemosICS.mp3:system/media/audio/ringtones/ThemosICS.mp3 \
+	$(LOCAL_PATH)/fnvsounds/Agent007.mp3:system/media/audio/notifications/Agent007.mp3 \
+	$(LOCAL_PATH)/fnvsounds/Goldeneye.mp3:system/media/audio/ringtones/Goldeneye.mp3
 
