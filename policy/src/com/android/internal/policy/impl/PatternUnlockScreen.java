@@ -152,6 +152,8 @@ class PatternUnlockScreen extends LinearLayoutWithDefaultTouchRecepient
         mFailedPatternAttemptsSinceLastTimeout =
             totalFailedAttempts % LockPatternUtils.FAILED_ATTEMPTS_BEFORE_TIMEOUT;
 
+		mLockPatternUtils.updateLockPatternSize();
+
         if (DEBUG) Log.d(TAG,
             "UnlockScreen() ctor: totalFailedAttempts="
                  + totalFailedAttempts + ", mFailedPat...="
@@ -192,6 +194,8 @@ class PatternUnlockScreen extends LinearLayoutWithDefaultTouchRecepient
 
         // vibrate mode will be the same for the life of this screen
         mLockPatternView.setTactileFeedbackEnabled(mLockPatternUtils.isTactileFeedbackEnabled());
+
+		mLockPatternView.setLockPatternSize(mLockPatternUtils.getLockPatternSize());
 
         // assume normal footer mode for now
         updateFooter(FooterMode.Normal);
@@ -339,7 +343,8 @@ class PatternUnlockScreen extends LinearLayoutWithDefaultTouchRecepient
         }
 
         public void onPatternDetected(List<LockPatternView.Cell> pattern) {
-            if (mLockPatternUtils.checkPattern(pattern)) {
+			mLockPatternUtils.updateLockPatternSize();
+			if (mLockPatternUtils.checkPattern(pattern)) {
                 mLockPatternView
                         .setDisplayMode(LockPatternView.DisplayMode.Correct);
                 mKeyguardStatusViewManager.setInstructionText("");
