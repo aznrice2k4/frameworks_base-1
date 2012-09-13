@@ -29,12 +29,14 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.StatusBarManager;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.CustomTheme;
 import android.content.res.Resources;
+import android.database.ContentObserver;
 import android.graphics.Canvas;
 import android.graphics.ColorFilter;
 import android.graphics.PixelFormat;
@@ -43,6 +45,8 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.NinePatchDrawable;
 import android.inputmethodservice.InputMethodService;
+import android.net.Uri;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
@@ -93,11 +97,14 @@ import com.android.systemui.statusbar.policy.LocationController;
 import com.android.systemui.statusbar.policy.OnSizeChangedListener;
 import com.android.systemui.statusbar.policy.NetworkController;
 import com.android.systemui.statusbar.policy.NotificationRowLayout;
+import com.android.systemui.statusbar.preferences.EosSettings;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+
+import org.teameos.jellybean.settings.EOSConstants;
 
 public class PhoneStatusBar extends BaseStatusBar {
     static final String TAG = "PhoneStatusBar";
@@ -314,6 +321,15 @@ public class PhoneStatusBar extends BaseStatusBar {
         }
     }
 
+    EosSettings mEosSettingsTop;
+    EosSettings mEosSettingsBottom;
+    ContentObserver mEosSettingsContentObserver = new ContentObserver(new Handler()) {
+        @Override
+        public void onChange(boolean selfChange) {
+            processEosSettingsChange();
+        }
+    };
+
     @Override
     public void start() {
         mDisplay = ((WindowManager)mContext.getSystemService(Context.WINDOW_SERVICE))
@@ -467,7 +483,8 @@ public class PhoneStatusBar extends BaseStatusBar {
         // Other icons
         mLocationController = new LocationController(mContext); // will post a notification
         mBatteryController = new BatteryController(mContext);
-        mBatteryController.addIconView((ImageView)mStatusBarView.findViewById(R.id.battery));
+        processBatterySettingsChange();
+		//mBatteryController.addIconView((ImageView)mStatusBarView.findViewById(R.id.battery));
         mNetworkController = new NetworkController(mContext);
         final SignalClusterView signalCluster =
                 (SignalClusterView)mStatusBarView.findViewById(R.id.signal_cluster);
@@ -500,6 +517,14 @@ public class PhoneStatusBar extends BaseStatusBar {
         filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         context.registerReceiver(mBroadcastReceiver, filter);
+
+        context.getContentResolver().registerContentObserver(
+                Settings.System.getUriFor(EOSConstants.SYSTEMUI_SETTINGS_PHONE_TOP), false,
+                mEosSettingsContentObserver);
+        context.getContentResolver().registerContentObserver(
+                Settings.System.getUriFor(EOSConstants.SYSTEMUI_SETTINGS_PHONE_BOTTOM), false,
+                mEosSettingsContentObserver);
+        processEosSettingsChange();
 
         return mStatusBarView;
     }
@@ -2498,5 +2523,78 @@ public class PhoneStatusBar extends BaseStatusBar {
         @Override
         public void setBounds(Rect bounds) {
         }
+    }
+
+    protected void processBatterySettingsChange() {
+        ImageView batteryIcon = (ImageView) mStatusBarView.findViewById(R.id.battery);
+        TextView batteryText = (TextView) mStatusBarView.findViewById(R.id.battery_text);
+
+        if (Settings.System.getInt(mContext.getContentResolver(),
+                EOSConstants.SYSTEMUI_BATTERY_ICON_VISIBLE,
+                EOSConstants.SYSTEMUI_BATTERY_ICON_VISIBLE_DEF) == 1) {
+            if (batteryIcon != null) {
+                mBatteryController.addIconView(batteryIcon);
+                batteryIcon.setVisibility(View.VISIBLE);
+            }
+        } else {
+            mBatteryController.removeIconView(batteryIcon);
+            if (batteryIcon != null) batteryIcon.setVisibility(View.GONE);
+        }
+
+        if (Settings.System.getInt(mContext.getContentResolver(),
+                EOSConstants.SYSTEMUI_BATTERY_TEXT_VISIBLE,
+                EOSConstants.SYSTEMUI_BATTERY_TEXT_VISIBLE_DEF) == 1) {
+            if (batteryText != null) {
+                mBatteryController.addLabelView(batteryText);
+                batteryText.setVisibility(View.VISIBLE);
+            }
+        } else {
+            mBatteryController.removeLabelView(batteryText);
+            if (batteryIcon != null) batteryText.setVisibility(View.GONE);
+        }
+    }
+
+    private void processEosSettingsChange() {
+        ContentResolver resolver = mContext.getContentResolver();
+        ViewGroup topSettings = (ViewGroup) mStatusBarWindow.findViewById(R.id.eos_settings_top);
+        ViewGroup bottomSettings = (ViewGroup) mStatusBarWindow
+                .findViewById(R.id.eos_settings_bottom);
+
+        if (Settings.System.getInt(resolver, EOSConstants.SYSTEMUI_SETTINGS_ENABLED,
+                EOSConstants.SYSTEMUI_SETTINGS_ENABLED_DEF) == 1 &&
+                Settings.System.getInt(resolver, EOSConstants.SYSTEMUI_SETTINGS_PHONE_TOP,
+                        EOSConstants.SYSTEMUI_SETTINGS_PHONE_TOP_DEF) == 1) {
+            if (mEosSettingsTop != null) {
+                mEosSettingsTop.detach();
+            }
+
+            mEosSettingsTop = new EosSettings(topSettings, mContext);
+            topSettings.setVisibility(View.VISIBLE);
+        } else {
+            if (mEosSettingsTop != null) {
+                mEosSettingsTop.detach();
+            }
+            topSettings.setVisibility(View.GONE);
+            topSettings.removeAllViews();
+        }
+
+        if (Settings.System.getInt(resolver, EOSConstants.SYSTEMUI_SETTINGS_ENABLED,
+                EOSConstants.SYSTEMUI_SETTINGS_ENABLED_DEF) == 1 &&
+                Settings.System.getInt(resolver, EOSConstants.SYSTEMUI_SETTINGS_PHONE_BOTTOM,
+                        EOSConstants.SYSTEMUI_SETTINGS_PHONE_BOTTOM_DEF) == 1) {
+            if (mEosSettingsBottom != null) {
+                mEosSettingsBottom.detach();
+            }
+
+            mEosSettingsBottom = new EosSettings(bottomSettings, mContext);
+            bottomSettings.setVisibility(View.VISIBLE);
+        } else {
+            if (mEosSettingsBottom != null) {
+                mEosSettingsBottom.detach();
+            }
+            bottomSettings.setVisibility(View.GONE);
+            bottomSettings.removeAllViews();
+        }
+
     }
 }

@@ -50,22 +50,43 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/notification_panel_header_height"
             />
-     
-        <ScrollView
-            android:id="@+id/scroll"
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:fadingEdge="none"
-            android:overScrollMode="ifContentScrolls"
+            android:orientation="vertical"
             android:layout_marginTop="@dimen/notification_panel_header_height"
             >
-            <com.android.systemui.statusbar.policy.NotificationRowLayout
-                android:id="@+id/latestItems"
+            <LinearLayout
+                android:id="@+id/eos_settings_top"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                systemui:rowHeight="@dimen/notification_row_min_height"
-                />
-        </ScrollView>
+                android:layout_height="64dp"
+                android:layout_marginBottom="2dp"
+                android:visibility="gone" />
+
+            <ScrollView
+                android:id="@+id/scroll"
+                android:layout_width="match_parent"
+                android:layout_height="0dip"
+                android:layout_weight="1"
+                android:fadingEdge="none"
+                android:overScrollMode="ifContentScrolls"
+                >
+                <com.android.systemui.statusbar.policy.NotificationRowLayout
+                    android:id="@+id/latestItems"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    systemui:rowHeight="@dimen/notification_row_min_height"
+                    />
+            </ScrollView>
+
+            <LinearLayout
+                android:id="@+id/eos_settings_bottom"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginBottom="34dp"
+                android:visibility="gone" />
+        </LinearLayout>
     </FrameLayout>
 
     <com.android.systemui.statusbar.phone.CloseDragHandle android:id="@+id/close"
@@ -74,6 +95,7 @@
         android:layout_gravity="bottom"
         android:orientation="vertical"
         >
+
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="@dimen/close_handle_height"

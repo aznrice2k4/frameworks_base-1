@@ -48,8 +48,16 @@ public class BatteryController extends BroadcastReceiver {
         mIconViews.add(v);
     }
 
+    public void removeIconView(ImageView v) {
+        mIconViews.remove(v);
+    }
+
     public void addLabelView(TextView v) {
         mLabelViews.add(v);
+    }
+
+    public void removeLabelView(TextView v) {
+        mLabelViews.remove(v);
     }
 
     public void onReceive(Context context, Intent intent) {

@@ -16,6 +16,8 @@
 
 package com.android.systemui.statusbar.tablet;
 
+import org.teameos.jellybean.settings.EOSConstants;
+
 import android.app.StatusBarManager;
 import android.content.Context;
 import android.content.Intent;
@@ -24,6 +26,7 @@ import android.util.AttributeSet;
 import android.util.Slog;
 import android.widget.LinearLayout;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -35,6 +38,7 @@ import com.android.systemui.statusbar.policy.BrightnessController;
 import com.android.systemui.statusbar.policy.DoNotDisturbController;
 import com.android.systemui.statusbar.policy.ToggleSlider;
 import com.android.systemui.statusbar.policy.VolumeController;
+import com.android.systemui.statusbar.preferences.EosSettings;
 
 public class SettingsView extends LinearLayout implements View.OnClickListener {
     static final String TAG = "SettingsView";
@@ -45,6 +49,8 @@ public class SettingsView extends LinearLayout implements View.OnClickListener {
     DoNotDisturbController mDoNotDisturb;
     View mRotationLockContainer;
     View mRotationLockSeparator;
+
+    EosSettings mEosSettings;
 
     public SettingsView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -81,6 +87,13 @@ public class SettingsView extends LinearLayout implements View.OnClickListener {
         mDoNotDisturb = new DoNotDisturbController(context,
                 (CompoundButton)findViewById(R.id.do_not_disturb_checkbox));
         findViewById(R.id.settings).setOnClickListener(this);
+
+        if (Settings.System.getInt(mContext.getContentResolver(),
+                EOSConstants.SYSTEMUI_SETTINGS_ENABLED, EOSConstants.SYSTEMUI_SETTINGS_ENABLED_DEF) == 1) {
+            findViewById(R.id.eos_settings).setVisibility(View.VISIBLE);
+            mEosSettings = new EosSettings((ViewGroup) findViewById(R.id.eos_settings), context);
+        }
+
     }
 
     @Override

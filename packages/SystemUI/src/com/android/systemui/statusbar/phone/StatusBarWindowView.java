@@ -21,6 +21,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ScrollView;
 import android.widget.TextSwitcher;
@@ -92,6 +93,19 @@ public class StatusBarWindowView extends FrameLayout
         boolean handled = mExpandHelper.onTouchEvent(ev) ||
                 super.onTouchEvent(ev);
         return handled;
+    }
+
+    @Override
+    protected void onWindowVisibilityChanged(int visibility) {
+        // TODO Auto-generated method stub
+        super.onWindowVisibilityChanged(visibility);
+        if (visibility == View.VISIBLE) {
+            if (mService.mEosSettingsTop != null) mService.mEosSettingsTop.attach();
+            if (mService.mEosSettingsBottom != null) mService.mEosSettingsBottom.attach();
+        } else {
+            if (mService.mEosSettingsTop != null) mService.mEosSettingsTop.detach();
+            if (mService.mEosSettingsBottom != null) mService.mEosSettingsBottom.detach();
+        }
     }
 }
 
